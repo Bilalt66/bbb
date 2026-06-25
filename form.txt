@@ -1,0 +1,18 @@
+<?php
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $naam = $_POST['naam'] ?? '';
+    $bericht = $_POST['bericht'] ?? '';
+
+    echo "<p><strong>$naam</strong>: $bericht</p>";
+}
+?>
+
+<form method="post">
+    <input type="text" name="naam" placeholder="Naam" required>
+    <br><br>
+
+    <textarea name="bericht" placeholder="Bericht" required></textarea>
+    <br><br>
+
+    <button type="submit">Verstuur</button>
+</form>
