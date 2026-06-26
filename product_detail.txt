@@ -1,0 +1,106 @@
+<?php
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "webshop_p04";
+
+$dbConnected = false;
+$dbError = "";
+$producten = [];
+
+try {
+    $conn = new PDO("mysql:host=$servername;dbname=$dbname;charset=utf8mb4", $username, $password);
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $dbConnected = true;
+} catch (PDOException $e) {
+    $dbError = $e->getMessage();
+}
+
+
+
+if ($dbConnected) {
+    $stmt = $conn->prepare("SELECT * FROM producten");
+    $stmt->execute();
+    $producten = $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+if (isset($_POST['naam'])) {
+    setcookie("naam", $_POST['naam'], time() + 3600);
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit;
+}
+?>
+
+<!DOCTYPE html>
+<html lang="nl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Webshop</title>
+</head>
+
+<body>
+
+    <?php
+    if ($dbConnected) {
+        echo "<p style='color:green;'>✓ Database verbinding gelukt</p>";
+    } else {
+        echo "<p style='color:red;'>✗ Database fout: $dbError</p>";
+    }
+    ?>
+
+    <!-- VRAAG 1 -->
+    <?php if (isset($_COOKIE['naam'])): ?>
+        <h2>Welkom terug, <?= htmlspecialchars($_COOKIE['naam']) ?>!</h2>
+    <?php else: ?>
+        <h2>Welkom!</h2>
+        <p>Vul je naam in om een cookie op te slaan.</p>
+
+        <form method="post">
+            <input type="text" name="naam" required>
+            <button type="submit">Opslaan</button>
+        </form>
+    <?php endif; ?>
+
+    <hr>
+
+    <!-- VRAAG 3 -->
+    <h2>Producten</h2>
+
+    <table border="1" cellpadding="10">
+        <tr>
+            <th>ID</th>
+            <th>Naam</th>
+            <th>Prijs</th>
+            <th>Voorraad</th>
+            <th>Actie</th>
+        </tr>
+
+        <?php foreach ($producten as $p): ?>
+            <tr>
+                <td><?= $p['id'] ?></td>
+                <td><?= htmlspecialchars($p['naam']) ?></td>
+                <td>€<?= $p['prijs'] ?></td>
+                <td><?= $p['voorraad'] ?></td>
+                <td>
+                    <a href="product_detail.php?id=<?= $p['id'] ?>">Bekijk</a>
+                </td>
+            </tr>
+        <?php endforeach; ?>
+    </table>
+
+    <hr>
+
+    <!-- VRAAG 4 -->
+    <h2>Nieuw product toevoegen</h2>
+
+    <form method="post" action="toevoegen.php">
+        <input type="text" name="naam" placeholder="Naam" required>
+        <input type="number" step="0.01" name="prijs" placeholder="Prijs" required>
+        <input type="number" name="voorraad" placeholder="Voorraad" required>
+        <button type="submit">Toevoegen</button>
+    </form>
+
+</body>
+
+</html>

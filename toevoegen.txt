@@ -1,0 +1,16 @@
+<?php
+$conn = new PDO("mysql:host=localhost;dbname=webshop_p04;charset=utf8mb4", "root", "");
+$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+
+    $stmt = $conn->prepare("INSERT INTO producten (naam, prijs, voorraad) VALUES (?, ?, ?)");
+    $stmt->execute([
+        $_POST['naam'],
+        $_POST['prijs'],
+        $_POST['voorraad']
+    ]);
+
+    echo "Product succesvol toegevoegd.<br>";
+    echo "<a href='index.php'>Terug</a>";
+}
