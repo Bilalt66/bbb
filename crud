@@ -1,0 +1,135 @@
+<?php
+session_start();
+
+/* 🔌 PDO CONNECTIE */
+$host = "localhost";
+$dbname = "testdb";
+$user = "root";
+$pass = "";
+
+$pdo = new PDO(
+    "mysql:host=$host;dbname=$dbname;charset=utf8",
+    $user,
+    $pass,
+    [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+);
+
+/* 📌 actie bepalen */
+$action = $_GET['action'] ?? 'read';
+
+/* ➕ CREATE */
+if ($action === 'create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    $stmt = $pdo->prepare("
+        INSERT INTO users (username, password)
+        VALUES (:username, :password)
+    ");
+
+    $stmt->execute([
+        'username' => $_POST['username'],
+        'password' => password_hash($_POST['password'], PASSWORD_DEFAULT)
+    ]);
+
+    header("Location: crud.php");
+    exit;
+}
+
+/* ✏️ UPDATE */
+if ($action === 'update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    $stmt = $pdo->prepare("
+        UPDATE users
+        SET username = :username
+        WHERE id = :id
+    ");
+
+    $stmt->execute([
+        'username' => $_POST['username'],
+        'id' => $_POST['id']
+    ]);
+
+    header("Location: crud.php");
+    exit;
+}
+
+/* ❌ DELETE */
+if ($action === 'delete') {
+
+    $stmt = $pdo->prepare("DELETE FROM users WHERE id = :id");
+    $stmt->execute([
+        'id' => $_GET['id']
+    ]);
+
+    header("Location: crud.php");
+    exit;
+}
+
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CRUD</title>
+</head>
+<body>
+
+<h1>CRUD Systeem</h1>
+
+<?php
+/* 📝 FORM voor CREATE */
+if ($action === 'form') {
+?>
+    <h2>Nieuwe user</h2>
+
+    <form method="POST" action="crud.php?action=create">
+        <input type="text" name="username" placeholder="username" required>
+        <input type="password" name="password" placeholder="password" required>
+        <button type="submit">Aanmaken</button>
+    </form>
+
+    <a href="crud.php">Terug</a>
+
+<?php
+}
+
+/* ✏️ FORM voor UPDATE */
+elseif ($action === 'edit') {
+
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE id = :id");
+    $stmt->execute(['id' => $_GET['id']]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+?>
+    <h2>Edit user</h2>
+
+    <form method="POST" action="crud.php?action=update">
+        <input type="hidden" name="id" value="<?= $user['id'] ?>">
+        <input type="text" name="username" value="<?= $user['username'] ?>" required>
+        <button type="submit">Opslaan</button>
+    </form>
+
+    <a href="crud.php">Terug</a>
+
+<?php
+}
+
+/* 👀 READ (overzicht) */
+else {
+
+    echo "<a href='crud.php?action=form'>+ Nieuwe user</a><br><br>";
+
+    $stmt = $pdo->query("SELECT * FROM users");
+    $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    foreach ($users as $user) {
+        echo "
+            <b>{$user['username']}</b>
+            <a href='crud.php?action=edit&id={$user['id']}'>Edit</a>
+            <a href='crud.php?action=delete&id={$user['id']}'>Delete</a>
+            <br>
+        ";
+    }
+}
+?>
+
+</body>
+</html>
