@@ -37,3 +37,9 @@ if (isset($_COOKIE['naam'])) {
 
 </body>
 </html>
+
+ANDER VOORBEELD
+
+<?php
+setcookie("stad", "Amsterdam", time() + 3600);
+?>
