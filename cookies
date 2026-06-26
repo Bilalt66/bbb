@@ -1,0 +1,39 @@
+<?php
+if (isset($_POST['naam']) && !empty($_POST['naam'])) {
+    $naam = htmlspecialchars($_POST['naam']);
+
+    setcookie("naam", $naam, time() + 3600);
+
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit;
+}
+?>
+
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <title>Cookie Oefening</title>
+</head>
+<body>
+
+<?php
+if (isset($_COOKIE['naam'])) {
+    echo "<h2>Welkom " . htmlspecialchars($_COOKIE['naam']) . "!</h2>";
+    echo "<p>Fijn dat je terug bent.</p>";
+} else {
+?>
+    <h2>Welkom!</h2>
+    <p>Vul je naam in. Deze wordt gedurende 1 uur opgeslagen in een cookie.</p>
+
+    <form method="post">
+        <label for="naam">Naam:</label>
+        <input type="text" name="naam" id="naam" required>
+        <button type="submit">Opslaan</button>
+    </form>
+<?php
+}
+?>
+
+</body>
+</html>
