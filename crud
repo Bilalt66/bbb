@@ -9,32 +9,50 @@ try {
     $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    echo "Connected successfully<br><br>"; // 
-
+    echo "Connected successfully<br><br>";
 } catch (PDOException $e) {
     die("Connection failed: " . $e->getMessage());
 }
 
+
 if (isset($_POST['add'])) {
-    $conn->exec("INSERT INTO producten (naam, prijs) VALUES ('$_POST[naam]', '$_POST[prijs]')");
+
+    $stmt = $conn->prepare("
+        INSERT INTO producten (naam, prijs)
+        VALUES (:naam, :prijs)
+    ");
+
+    $stmt->execute([
+        ':naam' => $_POST['naam'],
+        ':prijs' => $_POST['prijs']
+    ]);
+
+    echo "Product succesvol toegevoegd.<br><br>";
 }
+
 
 if (isset($_GET['del'])) {
     $conn->exec("DELETE FROM producten WHERE id=$_GET[del]");
 }
 
+
 if (isset($_POST['upd'])) {
-    $conn->exec("UPDATE producten SET naam='$_POST[naam]', prijs='$_POST[prijs]' WHERE id=$_POST[id]");
+    $conn->exec("
+        UPDATE producten 
+        SET naam='$_POST[naam]', prijs='$_POST[prijs]' 
+        WHERE id=$_POST[id]
+    ");
 }
+
 
 $q = $conn->query("SELECT * FROM producten");
 ?>
 
 <h3>Toevoegen</h3>
+
 <form method="post">
-    <input name="naam">
-    <input name="prijs">
-    
+    <input name="naam" placeholder="Naam">
+    <input name="prijs" placeholder="Prijs">
     <button name="add">+</button>
 </form>
 
@@ -45,6 +63,7 @@ $q = $conn->query("SELECT * FROM producten");
         <input type="hidden" name="id" value="<?= $r['id'] ?>">
         <input name="naam" value="<?= $r['naam'] ?>">
         <input name="prijs" value="<?= $r['prijs'] ?>">
+
         <button name="upd">update</button>
         <a href="?del=<?= $r['id'] ?>">x</a>
     </form>
