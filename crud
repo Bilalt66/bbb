@@ -1,135 +1,51 @@
 <?php
-session_start();
 
-/* 🔌 PDO CONNECTIE */
-$host = "localhost";
-$dbname = "testdb";
-$user = "root";
-$pass = "";
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "mijn_database";
 
-$pdo = new PDO(
-    "mysql:host=$host;dbname=$dbname;charset=utf8",
-    $user,
-    $pass,
-    [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
-);
+try {
+    $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-/* 📌 actie bepalen */
-$action = $_GET['action'] ?? 'read';
+    echo "Connected successfully<br><br>"; // 👈 toegevoegd
 
-/* ➕ CREATE */
-if ($action === 'create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-
-    $stmt = $pdo->prepare("
-        INSERT INTO users (username, password)
-        VALUES (:username, :password)
-    ");
-
-    $stmt->execute([
-        'username' => $_POST['username'],
-        'password' => password_hash($_POST['password'], PASSWORD_DEFAULT)
-    ]);
-
-    header("Location: crud.php");
-    exit;
+} catch (PDOException $e) {
+    die("Connection failed: " . $e->getMessage());
 }
 
-/* ✏️ UPDATE */
-if ($action === 'update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-
-    $stmt = $pdo->prepare("
-        UPDATE users
-        SET username = :username
-        WHERE id = :id
-    ");
-
-    $stmt->execute([
-        'username' => $_POST['username'],
-        'id' => $_POST['id']
-    ]);
-
-    header("Location: crud.php");
-    exit;
+if (isset($_POST['add'])) {
+    $conn->exec("INSERT INTO producten (naam, prijs) VALUES ('$_POST[naam]', '$_POST[prijs]')");
 }
 
-/* ❌ DELETE */
-if ($action === 'delete') {
-
-    $stmt = $pdo->prepare("DELETE FROM users WHERE id = :id");
-    $stmt->execute([
-        'id' => $_GET['id']
-    ]);
-
-    header("Location: crud.php");
-    exit;
+if (isset($_GET['del'])) {
+    $conn->exec("DELETE FROM producten WHERE id=$_GET[del]");
 }
 
+if (isset($_POST['upd'])) {
+    $conn->exec("UPDATE producten SET naam='$_POST[naam]', prijs='$_POST[prijs]' WHERE id=$_POST[id]");
+}
+
+$q = $conn->query("SELECT * FROM producten");
 ?>
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>CRUD</title>
-</head>
-<body>
+<h3>Toevoegen</h3>
+<form method="post">
+    <input name="naam">
+    <input name="prijs">
+    
+    <button name="add">+</button>
+</form>
 
-<h1>CRUD Systeem</h1>
+<h3>Lijst</h3>
 
-<?php
-/* 📝 FORM voor CREATE */
-if ($action === 'form') {
-?>
-    <h2>Nieuwe user</h2>
-
-    <form method="POST" action="crud.php?action=create">
-        <input type="text" name="username" placeholder="username" required>
-        <input type="password" name="password" placeholder="password" required>
-        <button type="submit">Aanmaken</button>
+<?php foreach ($q as $r) { ?>
+    <form method="post">
+        <input type="hidden" name="id" value="<?= $r['id'] ?>">
+        <input name="naam" value="<?= $r['naam'] ?>">
+        <input name="prijs" value="<?= $r['prijs'] ?>">
+        <button name="upd">update</button>
+        <a href="?del=<?= $r['id'] ?>">x</a>
     </form>
-
-    <a href="crud.php">Terug</a>
-
-<?php
-}
-
-/* ✏️ FORM voor UPDATE */
-elseif ($action === 'edit') {
-
-    $stmt = $pdo->prepare("SELECT * FROM users WHERE id = :id");
-    $stmt->execute(['id' => $_GET['id']]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
-?>
-    <h2>Edit user</h2>
-
-    <form method="POST" action="crud.php?action=update">
-        <input type="hidden" name="id" value="<?= $user['id'] ?>">
-        <input type="text" name="username" value="<?= $user['username'] ?>" required>
-        <button type="submit">Opslaan</button>
-    </form>
-
-    <a href="crud.php">Terug</a>
-
-<?php
-}
-
-/* 👀 READ (overzicht) */
-else {
-
-    echo "<a href='crud.php?action=form'>+ Nieuwe user</a><br><br>";
-
-    $stmt = $pdo->query("SELECT * FROM users");
-    $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    foreach ($users as $user) {
-        echo "
-            <b>{$user['username']}</b>
-            <a href='crud.php?action=edit&id={$user['id']}'>Edit</a>
-            <a href='crud.php?action=delete&id={$user['id']}'>Delete</a>
-            <br>
-        ";
-    }
-}
-?>
-
-</body>
-</html>
+<?php } ?>
