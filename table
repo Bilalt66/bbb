@@ -1,0 +1,40 @@
+<?php
+
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "mijn_database"; 
+
+try {
+    $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+    echo "Connected successfully<br><br>";
+} catch (PDOException $e) {
+    die("Connection failed: " . $e->getMessage());
+}
+
+$stmt = $conn->query("SELECT * FROM producten");
+$producten = $stmt->fetchAll(PDO::FETCH_ASSOC);
+?>
+
+<h2>Producten</h2>
+
+<table border="1" cellpadding="10">
+    <tr>
+        <th>ID</th>
+        <th>Naam</th>
+        <th>Prijs</th>
+        <th>Voorraad</th>
+    </tr>
+
+    <?php foreach ($producten as $p) { ?>
+        <tr>
+            <td><?= $p['id'] ?></td>
+            <td><?= $p['naam'] ?></td>
+            <td><?= $p['prijs'] ?></td>
+            <td><?= $p['voorraad'] ?></td>
+        </tr>
+    <?php } ?>
+
+</table>
