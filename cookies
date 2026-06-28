@@ -1,45 +1,25 @@
 <?php
-if (isset($_POST['naam']) && !empty($_POST['naam'])) {
-    $naam = htmlspecialchars($_POST['naam']);
+$naam = "";
 
-    setcookie("naam", $naam, time() + 3600);
-
-    header("Location: " . $_SERVER['PHP_SELF']);
-    exit;
+if (isset($_POST["naam"])) {
+    $naam = $_POST["naam"];
+    setcookie("username", $naam, time() + 3600);
+} elseif (isset($_COOKIE["username"])) {
+    $naam = $_COOKIE["username"];
 }
 ?>
 
-<!DOCTYPE html>
-<html lang="nl">
-<head>
-    <meta charset="UTF-8">
-    <title>Cookie Oefening</title>
-</head>
-<body>
+<?php if ($naam != ""): ?>
 
-<?php
-if (isset($_COOKIE['naam'])) {
-    echo "<h2>Welkom " . htmlspecialchars($_COOKIE['naam']) . "!</h2>";
-    echo "<p>Fijn dat je terug bent.</p>";
-} else {
-?>
-    <h2>Welkom!</h2>
-    <p>Vul je naam in. Deze wordt gedurende 1 uur opgeslagen in een cookie.</p>
+    Welkom terug, <?php echo $naam; ?>!
+
+<?php else: ?>
 
     <form method="post">
-        <label for="naam">Naam:</label>
-        <input type="text" name="naam" id="naam" required>
-        <button type="submit">Opslaan</button>
+        Naam: <input type="text" name="naam">
+        <input type="submit" value="Versturen">
     </form>
-<?php
-}
-?>
 
-</body>
-</html>
+    Vul je naam in.
 
-ANDER VOORBEELD
-
-<?php
-setcookie("stad", "Amsterdam", time() + 3600);
-?>
+<?php endif; ?>
